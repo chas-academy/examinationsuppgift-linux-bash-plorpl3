@@ -1,0 +1,8 @@
+1. Use shebang
+2. Check if the user running the script is root/uid1000, if not exit
+3. Script shall recieve a list of usernames as arguments and create
+these users on the system (useradd)
+4. For every new user, new directories called Documents, Downloads
+and Work are to be created in their /home
+5. Only owner can read and write in these
+6. Welcome message in /home. First line Welcome usename, and a list of other users in the system
