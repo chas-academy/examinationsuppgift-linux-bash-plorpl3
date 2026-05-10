@@ -7,7 +7,6 @@
 #
 
 idu=$(id -u) #Sätt id -u som variabel -u för användning i test
-users=$(awk -F: '$3 >= 1000 {print $1}' /etc/passwd) #Splitta linjerna med :, kolla om UID ($3) är över 1000, om så är fallet, printa användarnamnet ($1)
 
 if [ "$idu" -ne 0 ]; then        #Testa om användaren är UID 0 om inte avsluta script
         echo "Otilltäcklig behörighet, avslutar script"
@@ -17,18 +16,22 @@ if [ $# -eq 0 ]; then           #Testa om inga argument gavs isf avsluta script,
         echo "Inga användarnamn gavs, avslutar script"
         exit 1
 fi
-for nuser in "$@"               #Sätt värdet av $@ till "nuser" variabeln per iteration
+for nuser in "$@"               #$@ Håller skriptargumenten
 do
-        useradd -m "$nuser"     #Skapa en användare, om /home inte finns så skapa /home
-        home_dir="/home/$nuser"
-        for folders in Documents Downloads Work         #Varje rotation körs mkdir för folders variabeln, rotation 1=Documents, rotation 2=Downloads, rotation 3=Work
+        useradd -m "$nuser"	#Skapa alla användare 
+done
+for nuser in "$@"		#$@ Behåller samma värde från första, för att använda i mkdir loopen nedan.
+do
+        home_dir="/home/$nuser"	#Sätter denna path för att köra mkdir hos nya användare. 
+        for folders in Documents Downloads Work         #När alla användare har gjorts, så görs mapparna.  
         do
                 mkdir -m 700 "$home_dir/$folders"       #Skapa directories,om perm är 600 kan ägare ej gå in
         done
 
-                chown -R "$nuser:$nuser" "$home_dir"    #chown owner:group Byt ägare på den nya användarens home directory till den nya användaren, -R för recursively
-                printf "VÄLKOMMEN %s\n" "$nuser" >> "$home_dir/welcome.txt" #%s=sätt in string placeholder. Första %s="$nuser" osv
-                printf '%s\n' "$users" >> "$home_dir/welcome.txt"
-                cat "$home_dir/welcome.txt"
+                chown -R "$nuser:$nuser" "$home_dir"    # Byt ägare på den nya användarens home directory till den nya användaren, -R för recursively
+                users=$(awk -F: '$3 >= 1000 {print $1}' /etc/passwd) #Splitta linjerna med :, kolla om UID ($3) är över 1000, om så är fallet, printa användarnamnet ($1)
+	       	printf "Välkommen %s\n" "$nuser" >> "$home_dir/welcome.txt" #%s=sätt in string placeholder. Första %s="$nuser" osv
+                printf '%s\n' "$users" >> "$home_dir/welcome.txt" #Skicka användarnamn från passwd till welcome.txt
+                cat "$home_dir/welcome.txt" #Cat för lättläslighet av output.
 done
 
