@@ -7,7 +7,7 @@
 #
 
 idu=$(id -u) #Sätt id -u som variabel -u för användning i test
-users=$(awk -F: '{print $1}' /etc/passwd) #Filtrera fält med : och printa $1 AWK från /etc/passwd. Detta inkluderar alla användare inkl system användare. alternativt: cut -d: -f1 /etc/passwd
+users=$(awk -F: '$3 >= 1000 {print $1}' /etc/passwd) #Splitta linjerna med :, kolla om UID ($3) är över 1000, om så är fallet, printa användarnamnet ($1)
 
 if [ "$idu" -ne 0 ]; then        #Testa om användaren är UID 0 om inte avsluta script
         echo "Otilltäcklig behörighet, avslutar script"
@@ -27,10 +27,8 @@ do
         done
 
                 chown -R "$nuser:$nuser" "$home_dir"    #chown owner:group Byt ägare på den nya användarens home directory till den nya användaren, -R för recursively
-                printf "%s\n\n" "<================================================================>" >> "$home_dir/welcome.txt"   #Formattering av välkomstmeddelande för lättläslighet
-                printf "VÄLKOMMEN TILL SYSTEMET %s, ANDRA ANVÄNDARE FINNS NEDANFÖR\n\n" "$nuser" >> "$home_dir/welcome.txt" #%s=sätt in string placeholder. Första %s="$nuser" osv
-                printf "%s\n\n" "<================================================================>" >> "$home_dir/welcome.txt"
-                printf '%s\n' "$users" >> "$home_dir/welcome.txt"                 
+                printf "VÄLKOMMEN %s\n" "$nuser" >> "$home_dir/welcome.txt" #%s=sätt in string placeholder. Första %s="$nuser" osv
+                printf '%s\n' "$users" >> "$home_dir/welcome.txt"
                 cat "$home_dir/welcome.txt"
 done
 
